@@ -1,9 +1,6 @@
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
@@ -21,7 +18,7 @@ public class Main {
         String error403 = "403 Forbidden";
         String error404 = "404 Not Found";
         String error500 = "500 Internal Server Error";
-        Scanner scanner = new Scanner(System.in);  //scanner
+        Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("please enter a command or url:");
             input = scanner.nextLine().trim().toLowerCase();
@@ -70,23 +67,32 @@ public class Main {
                     }
                     System.out.println(Response.toString());
                     ////check MIME types
-                    if (Response.toString().contains("text/html")) {
-                        // if (inputMethod.equals("GET")) {
-                        // String[] arrSplit = inputSb.toString().split("<!DOCTYPE");
-                        File output = new File("test.html");
-                        FileWriter writer = new FileWriter(output);
-                        // writer.write("<!DOCTYPE");
-                        // writer.write(arrSplit[1]);
-                        writer.write(Response.toString());
-                        writer.flush();
-                        writer.close();
-                        // }
+                    if (result.group(3).equals("/test.html") || Response.toString().contains("text/html")) {
+                        if (inputMethod.equals("GET")) {
+                            if (Response.toString().contains("<!DOCTYPE")) {
+                                String[] arrSplit = Response.toString().split("<!DOCTYPE");
+                                File output = new File("test.html");
+                                FileWriter writer = new FileWriter(output);
+                                writer.write("<!DOCTYPE");
+                                writer.write(arrSplit[1]);
+                                writer.flush();
+                                writer.close();
+                            } else {
+                                String[] strings = Response.toString().split("\n");
+                                File output = new File("test.html");
+                                FileWriter writer = new FileWriter(output);
+                                writer.write(strings[7]);
+                                writer.flush();
+                                writer.close();
+                            }
+                        }
                     }
                     if (Response.toString().contains("application/json")) {
                         if (inputMethod.equals("GET")) {
+                            String[] strings = Response.toString().split("\n");
                             File output = new File("test.json");
                             FileWriter writer = new FileWriter(output);
-                            writer.write(Response.toString());
+                            writer.write(strings[8]);
                             writer.flush();
                             writer.close();
                         }
@@ -103,7 +109,19 @@ public class Main {
                         if (inputMethod.equals("GET")) {
                             System.out.println("  access to the requested resource is forbidden for some reason.\n" +
                                     "  The server understood the request,\n" +
-                                    "  but will not fulfill it due to client-related issues.");
+                                    "  but will not fulfill it due to client-related issues.\n\n");
+                        }
+                    }
+                    if (Response.toString().contains(error404)) {
+                        if (inputMethod.equals("GET")) {
+                            System.out.println("  the browser is able to communicate with a given server,\n" +
+                                    "  but the server could not find what is requested\n\n");
+                        }
+                    }
+                    if (Response.toString().contains(error500)) {
+                        if (inputMethod.equals("GET")) {
+                            System.out.println("  something has gone wrong on the web site's server\n" +
+                                    "  but the server could not be more specific on what the exact problem is.\n\n");
                         }
                     }
                     socket.close();
